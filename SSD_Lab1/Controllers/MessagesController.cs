@@ -26,7 +26,9 @@ namespace SSD_Lab1.Controllers
         // GET: Messages
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Message.ToListAsync());
+            var messages = await _context.Message.Include((m) => m.User).ToListAsync();
+
+            return View(messages);
         }
 
         // GET: Messages/Create

@@ -13,7 +13,13 @@
     <thead>
         <tr>
             <th>
+                Username
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.MessageString)
+            </th>
+            <th>
+                 @Html.DisplayNameFor(model => model.CreatedAt)
             </th>
             <th></th>
         </tr>
@@ -22,7 +28,13 @@
 @foreach (var item in Model) {
         <tr>
             <td>
+                @Html.DisplayFor(modelItem => item.User.UserName)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.MessageString)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
             </td>
         </tr>
 }

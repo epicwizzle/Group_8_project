@@ -12,10 +12,15 @@ namespace SSD_Lab1.Models
         [Display(Name = "Message")]
         public string MessageString { get; set; }
 
-        [ForeignKey(nameof(User))]
-        public string UserId { get; set; }
+        [Display(Name = "Sent At")]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd hh:mm tt}")]
+        [Required]
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
 
-        public ApplicationUser User { get; set; }
+        [ForeignKey(nameof(User))]
+        public string UserId { get; set; } = null!;
+
+        public virtual ApplicationUser User { get; set; } = null!;
 
     }
 }

@@ -12,8 +12,8 @@ using SSD_Lab1.Data;
 namespace SSD_Lab1.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251009052750_addMessages")]
-    partial class addMessages
+    [Migration("20251009185102_cleanMsg")]
+    partial class cleanMsg
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -320,6 +320,30 @@ namespace SSD_Lab1.Data.Migrations
                     b.ToTable("Employee");
                 });
 
+            modelBuilder.Entity("SSD_Lab1.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("MessageString")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -369,6 +393,15 @@ namespace SSD_Lab1.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SSD_Lab1.Models.Message", b =>
+                {
+                    b.HasOne("SSD_Lab1.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
