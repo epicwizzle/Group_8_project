@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SSD_Lab1.Data;
@@ -20,6 +21,12 @@ namespace SSD_Lab1
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders().AddDefaultUI();
             builder.Services.AddControllersWithViews();
+
+            var kv = new Uri(builder.Configuration.GetSection("kvURI").Value);
+            var azCred = new DefaultAzureCredential();
+
+            builder.Configuration.AddAzureKeyVault(kv, azCred);
+            DbInitializer.DemoPassword = builder.Configuration.GetSection("DemoPassword").Value;
 
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())

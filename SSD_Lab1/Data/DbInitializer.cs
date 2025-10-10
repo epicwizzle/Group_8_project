@@ -12,6 +12,9 @@ namespace SSD_Lab1.Data
 {
     public static class DbInitializer
     {
+
+        public static string DemoPassword;
+
         public static async Task<int> SeedUsersAndRoles(IServiceProvider serviceProvider)
         {
             // create the database if it doesn't exist
@@ -75,7 +78,7 @@ namespace SSD_Lab1.Data
                 City = "Toronto",
                 EmailConfirmed = true
             };
-            var result = await userManager.CreateAsync(supervisor, "Password!1");
+            var result = await userManager.CreateAsync(supervisor, DemoPassword);
             if (!result.Succeeded)
                 return 1; // should log an error message here
 
@@ -95,7 +98,7 @@ namespace SSD_Lab1.Data
                 City = "Montreal",
                 EmailConfirmed = true
             };
-            result = await userManager.CreateAsync(employee, "Password!1");
+            result = await userManager.CreateAsync(employee, DemoPassword);
             if (!result.Succeeded)
                 return 3; // should log an error message here
 
