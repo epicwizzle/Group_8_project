@@ -9,9 +9,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SSD_Lab1.Data;
 using SSD_Lab1.Models;
+using SSD_Lab1.Helpers;
 
 namespace SSD_Lab1.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class MessagesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -49,8 +51,20 @@ namespace SSD_Lab1.Controllers
             var userId = _manager.GetUserId(User);
             message.UserId = userId;
 
+            // SQL injection protection
+            if (!string.IsNullOrEmpty(message.MessageString) && !SecurityHelper.IsSafeFromSqlInjection(message.MessageString))
+            {
+                ModelState.AddModelError("MessageString", "Invalid input detected");
+                return View();
+            }
+
             if (ModelState.IsValid)
             {
+                // Sanitize input before saving
+                if (!string.IsNullOrEmpty(message.MessageString))
+                {
+                    message.MessageString = SecurityHelper.SanitizeSqlInput(message.MessageString);
+                }
 
                 _context.Add(message);
                 await _context.SaveChangesAsync();

@@ -4,6 +4,7 @@ using SSD_Lab1.Models;
 
 namespace SSD_Lab1.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

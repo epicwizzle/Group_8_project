@@ -3,6 +3,7 @@ using SSD_Lab1.Data;
 using SSD_Lab1.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,62 +13,77 @@ namespace SSD_Lab1.Data
 {
     public static class DbInitializer
     {
-
         public static string DemoPassword;
 
         public static async Task<int> SeedUsersAndRoles(IServiceProvider serviceProvider)
         {
-            // create the database if it doesn't exist
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            var logger = serviceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+            
             context.Database.Migrate();
 
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-            // Check if roles already exist and exit if there are
             if (roleManager.Roles.Count() > 0)
-                return 1; // should log an error message here
+            {
+                logger.LogInformation("Database already initialized with roles");
+                return 1;
+            }
 
-            // Seed roles
-            int result = await SeedRoles(roleManager);
+            int result = await SeedRoles(roleManager, logger);
             if (result != 0)
-                return 2; // should log an error message here
+            {
+                logger.LogError("Role seeding failed");
+                return 2;
+            }
 
-            // Check if users already exist and exit if there are
             if (userManager.Users.Count() > 0)
-                return 3; // should log an error message here
+            {
+                logger.LogInformation("Users already exist in database");
+                return 3;
+            }
 
-            // Seed users
-            result = await SeedUsers(userManager);
+            result = await SeedUsers(userManager, logger);
             if (result != 0)
-                return 4; // should log an error message here
+            {
+                logger.LogError("User seeding failed");
+                return 4;
+            }
 
-            // Seed companies
-            result = await SeedCompanies(context);
+            result = await SeedCompanies(context, logger);
             if (result != 0)
-                return 5; // should log an error message here
+            {
+                logger.LogError("Company seeding failed");
+                return 5;
+            }
 
+            logger.LogInformation("Database initialization completed successfully");
             return 0;
         }
 
-        private static async Task<int> SeedRoles(RoleManager<IdentityRole> roleManager)
+        private static async Task<int> SeedRoles(RoleManager<IdentityRole> roleManager, ILogger logger)
         {
-            // Create Supervisor Role
             var result = await roleManager.CreateAsync(new IdentityRole("Supervisor"));
             if (!result.Succeeded)
-                return 1; // should log an error message here
+            {
+                logger.LogError("Failed to create Supervisor role: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return 1;
+            }
 
-            // Create Employee Role
             result = await roleManager.CreateAsync(new IdentityRole("Employee"));
             if (!result.Succeeded)
-                return 2; // should log an error message here
+            {
+                logger.LogError("Failed to create Employee role: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return 2;
+            }
 
+            logger.LogInformation("Roles seeded successfully");
             return 0;
         }
 
-        private static async Task<int> SeedUsers(UserManager<ApplicationUser> userManager)
+        private static async Task<int> SeedUsers(UserManager<ApplicationUser> userManager, ILogger logger)
         {
-            // Create Admin User
             var supervisor = new ApplicationUser
             {
                 UserName = "the.supervisor@mohawkcollege.ca",
@@ -78,16 +94,21 @@ namespace SSD_Lab1.Data
                 City = "Toronto",
                 EmailConfirmed = true
             };
+            
             var result = await userManager.CreateAsync(supervisor, DemoPassword);
             if (!result.Succeeded)
-                return 1; // should log an error message here
+            {
+                logger.LogError("Failed to create supervisor user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return 1;
+            }
 
-            // Assign user to Admin role
             result = await userManager.AddToRoleAsync(supervisor, "Supervisor");
             if (!result.Succeeded)
-                return 2; // should log an error message here
+            {
+                logger.LogError("Failed to assign Supervisor role: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return 2;
+            }
 
-            // Create Member User
             var employee = new ApplicationUser
             {
                 UserName = "the.employee@mohawkcollege.ca",
@@ -98,23 +119,32 @@ namespace SSD_Lab1.Data
                 City = "Montreal",
                 EmailConfirmed = true
             };
+            
             result = await userManager.CreateAsync(employee, DemoPassword);
             if (!result.Succeeded)
-                return 3; // should log an error message here
+            {
+                logger.LogError("Failed to create employee user: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return 3;
+            }
 
-            // Assign user to Member role
             result = await userManager.AddToRoleAsync(employee, "Employee");
             if (!result.Succeeded)
-                return 4; // should log an error message here
+            {
+                logger.LogError("Failed to assign Employee role: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return 4;
+            }
 
+            logger.LogInformation("Users seeded successfully");
             return 0;
         }
 
-        private static async Task<int> SeedCompanies(ApplicationDbContext context)
+        private static async Task<int> SeedCompanies(ApplicationDbContext context, ILogger logger)
         {
-            // Check if companies already exist
             if (context.Companies.Any())
-                return 1; // Companies already exist
+            {
+                logger.LogInformation("Companies already exist in database");
+                return 1;
+            }
 
             var companies = new List<Company>
             {
@@ -159,12 +189,13 @@ namespace SSD_Lab1.Data
             {
                 context.Companies.AddRange(companies);
                 await context.SaveChangesAsync();
-                return 0; // Success
+                logger.LogInformation("Companies seeded successfully");
+                return 0;
             }
             catch (Exception ex)
             {
-                // Log the exception here
-                return 2; // Error occurred while saving
+                logger.LogError(ex, "Error occurred while saving companies");
+                return 2;
             }
         }
     }

@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SSD_Lab1.Data;
 using SSD_Lab1.Models;
+using SSD_Lab1.Helpers;
 
 namespace SSD_Lab1.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class EmployeesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -28,7 +30,7 @@ namespace SSD_Lab1.Controllers
         // GET: Employees/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }
@@ -56,8 +58,24 @@ namespace SSD_Lab1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,ModelYear,Wage")] Employee employee)
         {
+            // SQL injection and XSS protection
+            if (!string.IsNullOrEmpty(employee.FirstName) && !SecurityHelper.IsSafeFromSqlInjection(employee.FirstName))
+            {
+                ModelState.AddModelError("FirstName", "Invalid input detected");
+            }
+            if (!string.IsNullOrEmpty(employee.LastName) && !SecurityHelper.IsSafeFromSqlInjection(employee.LastName))
+            {
+                ModelState.AddModelError("LastName", "Invalid input detected");
+            }
+
             if (ModelState.IsValid)
             {
+                // Sanitize inputs before saving
+                if (!string.IsNullOrEmpty(employee.FirstName))
+                    employee.FirstName = SecurityHelper.SanitizeSqlInput(employee.FirstName);
+                if (!string.IsNullOrEmpty(employee.LastName))
+                    employee.LastName = SecurityHelper.SanitizeSqlInput(employee.LastName);
+
                 _context.Add(employee);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -68,7 +86,7 @@ namespace SSD_Lab1.Controllers
         // GET: Employees/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }
@@ -119,7 +137,7 @@ namespace SSD_Lab1.Controllers
         // GET: Employees/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }

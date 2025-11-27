@@ -11,11 +11,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SSD_Lab1.Data;
 using SSD_Lab1.Models;
+using SSD_Lab1.Helpers;
 using Microsoft.AspNetCore.Authorization;
 
 namespace SSD_Lab1.Controllers
 {
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class CompaniesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -34,7 +36,7 @@ namespace SSD_Lab1.Controllers
         // GET: Companies/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }
@@ -63,8 +65,30 @@ namespace SSD_Lab1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,YearsInBusiness,Website,Province")] Company company)
         {
+            // SQL injection and XSS protection
+            if (!string.IsNullOrEmpty(company.Name) && !SecurityHelper.IsSafeFromSqlInjection(company.Name))
+            {
+                ModelState.AddModelError("Name", "Invalid input detected");
+            }
+            if (!string.IsNullOrEmpty(company.Website) && !SecurityHelper.IsSafeFromSqlInjection(company.Website))
+            {
+                ModelState.AddModelError("Website", "Invalid input detected");
+            }
+            if (!string.IsNullOrEmpty(company.Province) && !SecurityHelper.IsSafeFromSqlInjection(company.Province))
+            {
+                ModelState.AddModelError("Province", "Invalid input detected");
+            }
+
             if (ModelState.IsValid)
             {
+                // Sanitize inputs before saving
+                if (!string.IsNullOrEmpty(company.Name))
+                    company.Name = SecurityHelper.SanitizeSqlInput(company.Name);
+                if (!string.IsNullOrEmpty(company.Website))
+                    company.Website = SecurityHelper.SanitizeSqlInput(company.Website);
+                if (!string.IsNullOrEmpty(company.Province))
+                    company.Province = SecurityHelper.SanitizeSqlInput(company.Province);
+
                 _context.Add(company);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -76,7 +100,7 @@ namespace SSD_Lab1.Controllers
         [Authorize(Roles = "Supervisor")]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }
@@ -128,7 +152,7 @@ namespace SSD_Lab1.Controllers
         [Authorize(Roles = "Supervisor")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }

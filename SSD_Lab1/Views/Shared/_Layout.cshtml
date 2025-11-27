@@ -54,6 +54,17 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Disable autocomplete on all password fields for security
+        document.addEventListener('DOMContentLoaded', function() {
+            var passwordFields = document.querySelectorAll('input[type="password"]');
+            passwordFields.forEach(function(field) {
+                field.setAttribute('autocomplete', 'off');
+                field.setAttribute('autocapitalize', 'off');
+                field.setAttribute('autocorrect', 'off');
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SSD_Lab1.Data;
 using SSD_Lab1.Models;
+using SSD_Lab1.Helpers;
 
 namespace SSD_Lab1.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class CarsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -28,7 +30,7 @@ namespace SSD_Lab1.Controllers
         // GET: Cars/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }
@@ -56,8 +58,18 @@ namespace SSD_Lab1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Model,ModelYear,Cost")] Car car)
         {
+            // SQL injection and XSS protection
+            if (!string.IsNullOrEmpty(car.Model) && !SecurityHelper.IsSafeFromSqlInjection(car.Model))
+            {
+                ModelState.AddModelError("Model", "Invalid input detected");
+            }
+
             if (ModelState.IsValid)
             {
+                // Sanitize inputs before saving
+                if (!string.IsNullOrEmpty(car.Model))
+                    car.Model = SecurityHelper.SanitizeSqlInput(car.Model);
+
                 _context.Add(car);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -68,7 +80,7 @@ namespace SSD_Lab1.Controllers
         // GET: Cars/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }
@@ -119,7 +131,7 @@ namespace SSD_Lab1.Controllers
         // GET: Cars/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+            if (id == null || id <= 0)
             {
                 return NotFound();
             }
