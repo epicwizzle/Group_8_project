@@ -61,12 +61,13 @@ namespace SSD_Lab1.Controllers
             // SQL injection and XSS protection
             if (!string.IsNullOrEmpty(car.Model) && !SecurityHelper.IsSafeFromSqlInjection(car.Model))
             {
-                ModelState.AddModelError("Model", "Invalid input detected");
+                ModelState.AddModelError("Model", "Invalid input detected. SQL injection attempt blocked.");
+                return View(car); // Return early to prevent saving
             }
 
             if (ModelState.IsValid)
             {
-                // Sanitize inputs before saving
+                // Sanitize inputs before saving (additional safety layer)
                 if (!string.IsNullOrEmpty(car.Model))
                     car.Model = SecurityHelper.SanitizeSqlInput(car.Model);
 
@@ -105,10 +106,21 @@ namespace SSD_Lab1.Controllers
                 return NotFound();
             }
 
+            // SQL injection and XSS protection
+            if (!string.IsNullOrEmpty(car.Model) && !SecurityHelper.IsSafeFromSqlInjection(car.Model))
+            {
+                ModelState.AddModelError("Model", "Invalid input detected. SQL injection attempt blocked.");
+                return View(car); // Return early to prevent saving
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Sanitize inputs before saving (additional safety layer)
+                    if (!string.IsNullOrEmpty(car.Model))
+                        car.Model = SecurityHelper.SanitizeSqlInput(car.Model);
+
                     _context.Update(car);
                     await _context.SaveChangesAsync();
                 }

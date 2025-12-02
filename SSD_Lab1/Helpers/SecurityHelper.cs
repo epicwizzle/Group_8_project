@@ -112,8 +112,15 @@ namespace SSD_Lab1.Helpers
             var dangerousPatterns = new[]
             {
                 "';", "--", "/*", "*/", "xp_", "sp_", "exec", "execute", "union", "select", "insert", "update",
-                "delete", "drop", "create", "alter", "truncate", "declare", "cast", "convert", "script"
+                "delete", "drop", "create", "alter", "truncate", "declare", "cast", "convert", "script",
+                "'1'='1", "'1'='1'", "1'='1", "1'='1'", "or '1'='1", "or 1=1", "or 1=1--", "or '1'='1'--"
             };
+            
+            // Check for single quotes which are used in SQL injection
+            if (input.Contains("'") && (input.Contains("=") || input.Contains("or") || input.Contains("and")))
+            {
+                return false;
+            }
 
             var lowerInput = input.ToLowerInvariant();
 
