@@ -23,19 +23,6 @@ namespace SSD_Lab1
             {
                 options.SignIn.RequireConfirmedAccount = true;
 
-                // Password settings - Strong password requirements
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireNonAlphanumeric = true;
-                options.Password.RequiredLength = 10;
-                options.Password.RequiredUniqueChars = 4;
-
-                // Lockout settings - Protect against brute force attacks
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-                options.Lockout.MaxFailedAccessAttempts = 5;
-                options.Lockout.AllowedForNewUsers = true;
-
                 // User settings
                 options.User.RequireUniqueEmail = true;
             })
