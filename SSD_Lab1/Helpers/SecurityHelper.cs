@@ -112,7 +112,7 @@ namespace SSD_Lab1.Helpers
             var dangerousPatterns = new[]
             {
                 "';", "--", "/*", "*/", "xp_", "sp_", "exec", "execute", "union", "select", "insert", "update",
-                "delete", "drop", "create", "alter", "truncate", "declare", "cast", "convert", "script",
+                "delete", "drop", "create", "alter", "truncate", "declare", "cast", "convert",
                 "'1'='1", "'1'='1'", "1'='1", "1'='1'", "or '1'='1", "or 1=1", "or 1=1--", "or '1'='1'--"
             };
             
