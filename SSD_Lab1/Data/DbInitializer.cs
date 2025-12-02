@@ -92,7 +92,8 @@ namespace SSD_Lab1.Data
                 LastName = "Supervisor",
                 PhoneNumber = "555-0101",
                 City = "Toronto",
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                LockoutEnabled = true
             };
             
             var result = await userManager.CreateAsync(supervisor, DemoPassword);
@@ -117,7 +118,8 @@ namespace SSD_Lab1.Data
                 LastName = "Employee",
                 PhoneNumber = "555-0102",
                 City = "Montreal",
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                LockoutEnabled = true
             };
             
             result = await userManager.CreateAsync(employee, DemoPassword);
